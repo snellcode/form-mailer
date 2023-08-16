@@ -14,12 +14,12 @@ if (!function_exists("dd")) {
 }
 
 class FormMailer {
-  protected $form;
-  protected $reload_url;
+  public $recaptcha_sitekey;
+  protected $recaptcha_secretkey;
   protected $gmail_user;
   protected $gmail_password;
-  protected $recaptcha_sitekey;
-  protected $recaptcha_secretkey;
+  protected $form;
+  protected $reload_url;
 
   public function __construct() {
     require_once __DIR__ . "/config.php";
@@ -38,13 +38,6 @@ class FormMailer {
     $this->validateRecaptcha();
     $this->sendEmail();
     $this->reload();
-  }
-
-  protected function reload() {
-    $this->reload_url = $this->reload_url . "?success=true";
-    http_response_code(200);
-    header("Location: " . $this->reload_url);
-    exit();
   }
 
   protected function initForm() {
@@ -70,6 +63,32 @@ class FormMailer {
     }
   }
 
+  protected function reload() {
+    $this->reload_url = $this->reload_url . "?success=true";
+    http_response_code(200);
+    header("Location: " . $this->reload_url);
+    exit();
+  }
+
+  protected function sendEmail() {
+    $to = $this->gmail_user;
+    $from = $this->gmail_user;
+    $mail = new PHPMailer(true);
+    $mail->isSMTP();
+    $mail->Host = "smtp.gmail.com";
+    $mail->SMTPAuth = true;
+    $mail->Port = 587;
+    $mail->Username = $this->gmail_user;
+    $mail->Password = $this->gmail_password;
+    $mail->Subject = "Contact Form";
+    $mail->addAddress($to);
+    $mail->setFrom($from);
+    $mail->isHTML(true);
+    $mail->Body = $this->getEmailBody();
+    $mail->AltBody = $this->getEmailAltBody();
+    $mail->send();
+  }
+
   protected function getEmailBody() {
     $rows = [];
     foreach ($this->form as $key => $value) {
@@ -90,24 +109,5 @@ class FormMailer {
 
   protected function getEmailAltBody() {
     return json_encode($this->form, JSON_PRETTY_PRINT);
-  }
-
-  protected function sendEmail() {
-    $to = $this->gmail_user;
-    $from = $this->gmail_user;
-    $mail = new PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = "smtp.gmail.com";
-    $mail->SMTPAuth = true;
-    $mail->Port = 587;
-    $mail->Username = $this->gmail_user;
-    $mail->Password = $this->gmail_password;
-    $mail->Subject = "Contact Form";
-    $mail->addAddress($to);
-    $mail->setFrom($from);
-    $mail->isHTML(true);
-    $mail->Body = $this->getEmailBody();
-    $mail->AltBody = $this->getEmailAltBody();
-    $mail->send();
   }
 }

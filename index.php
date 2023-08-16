@@ -50,7 +50,7 @@ try {
         </label>
       </div>
 
-      <div class="g-recaptcha" data-sitekey="<?= $recaptcha_sitekey ?>"></div>
+      <div class="g-recaptcha" data-sitekey="<?= $fm->recaptcha_sitekey ?>"></div>
 
       <button type="submit">Send</button>
     </form>
